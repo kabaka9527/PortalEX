@@ -59,6 +59,7 @@ class HomeFragment : Fragment() {
     private val homeViewModel by viewModels<HomeViewModel>()
     private lateinit var mLocationClient: AMapLocationClient
     private val baiduMapViewModel by activityViewModels<BaiduMapViewModel>()
+    private var moveToCurrentLocationOnNextFix = false
 
     @SuppressLint("SetTextI18n")
     override fun onCreateView(
@@ -147,6 +148,15 @@ class HomeFragment : Fragment() {
             if (loc == null) return@setLocationListener
             if (loc.errorCode != AMapLocation.LOCATION_SUCCESS) {
                 Log.e("HomeFragment", "AMap location error: ${loc.errorCode}, ${loc.errorInfo}")
+                if (moveToCurrentLocationOnNextFix) {
+                    moveToCurrentLocationOnNextFix = false
+                    val context = context ?: return@setLocationListener
+                    Toast.makeText(
+                        context,
+                        "定位失败: ${loc.errorInfo ?: loc.errorCode}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
                 return@setLocationListener
             }
 
@@ -155,7 +165,12 @@ class HomeFragment : Fragment() {
 
             with(baiduMapViewModel) {
                 currentLocation = loc.wgs84
-                baiduMap.setCurrentLocation(LatLng(loc.latitude, loc.longitude))
+                val mapLocation = LatLng(loc.latitude, loc.longitude)
+                baiduMap.setCurrentLocation(mapLocation)
+                if (moveToCurrentLocationOnNextFix) {
+                    moveToCurrentLocationOnNextFix = false
+                    baiduMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mapLocation, 19f))
+                }
             }
         }
         baiduMapViewModel.mLocationClient = mLocationClient
@@ -253,7 +268,7 @@ class HomeFragment : Fragment() {
         }
 
         binding.fabMyLocation.setOnClickListener {
-            baiduMapViewModel.baiduMap.locateMe()
+            locateCurrentPosition()
         }
 
         binding.fabGoto.setOnClickListener {
@@ -294,6 +309,21 @@ class HomeFragment : Fragment() {
                     .width(10f)
                     .addAll(listOf(points[i].gcj02, points[i + 1].gcj02))
             )
+        }
+    }
+
+    private fun locateCurrentPosition() {
+        baiduMapViewModel.baiduMap.locateMe()
+        baiduMapViewModel.currentLocation?.let {
+            baiduMapViewModel.baiduMap.animateCamera(
+                CameraUpdateFactory.newLatLngZoom(it.gcj02, 19f)
+            )
+            return
+        }
+
+        moveToCurrentLocationOnNextFix = true
+        if (this::mLocationClient.isInitialized) {
+            mLocationClient.startLocation()
         }
     }
 

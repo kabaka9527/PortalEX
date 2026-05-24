@@ -451,6 +451,7 @@ class RouteMockFragment : Fragment() {
     private fun showRouteLoopDialog() {
         val input = TextInputEditText(requireContext()).apply {
             setText(requireContext().routeLoopCount.toString())
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
             hint = getString(R.string.route_loop)
             setSelectAllOnFocus(true)

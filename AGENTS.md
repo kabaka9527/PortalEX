@@ -32,7 +32,9 @@ Use `PascalCase` for classes, `camelCase` for functions and properties, and desc
 
 ## Testing Guidelines
 
-Unit tests use JUnit 4. Android instrumentation tests use AndroidX JUnit and Espresso. Name JVM tests after the behavior under test and place them near the owning module, for example `nmea/src/test/java/...`. Run `./gradlew test` before submitting hook, parser, or ViewModel changes; run connected Android tests for UI flows or device integration.
+Unit tests use JUnit 4 and must live under each module's `src/test/` tree; do not place unit tests in `src/androidTest/`. Android instrumentation tests use AndroidX JUnit and Espresso and are reserved for UI flows or device integration. Name JVM tests after the behavior under test and place them near the owning module, for example `nmea/src/test/java/...`.
+
+New or changed production logic must include unit tests that keep line and branch coverage at or above 98% for the affected module. If a path cannot be unit-tested because it depends on LSPosed, Android framework internals, native hooks, or device-only behavior, document the reason in the PR and add the closest feasible JVM test around pure parsing, state, or command-building logic. Run `./gradlew test` before submitting hook, parser, or ViewModel changes; run connected Android tests for UI flows or device integration.
 
 ## Commit & Pull Request Guidelines
 

@@ -48,14 +48,6 @@
                         android:textColor="@color/black"
                         android:textStyle="bold" />
 
-                    <TextView
-                        android:id="@+id/mock_route_loop"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/route_loop_default"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                        android:textColor="@color/portal_mini_title_color" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -95,6 +87,21 @@
                         android:layout_weight="1"
                         android:layout_height="match_parent"
                         android:gravity="end|center">
+
+                        <TextView
+                            android:id="@+id/mock_route_loop"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackgroundBorderless"
+                            android:minHeight="28dp"
+                            android:gravity="center"
+                            android:text="@string/route_loop_default"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                            android:textColor="@color/portal_mini_title_color"
+                            android:textSize="12sp" />
 
                         <CheckedTextView
                             android:id="@+id/rocker"
