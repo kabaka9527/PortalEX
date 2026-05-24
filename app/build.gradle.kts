@@ -95,7 +95,6 @@ android {
             .forEach {
                 val abiName = when (val abi = it.outputFileName.split("-")[1].split(".apk")[0]) {
                     "app" -> "all"
-                    "x64" -> "x86_64"
                     else -> abi
                 }
                 it.outputFileName = "Portal-v${versionName}-${abiName}.apk"
@@ -108,9 +107,8 @@ android {
         create("app") {
             dimension = "mode"
             ndk {
-                println("Full architecture and full compilation.")
+                println("Full compilation of bundled AMap architectures.")
                 abiFilters.add("arm64-v8a")
-                abiFilters.add("x86_64")
             }
         }
         create("arm64") {
@@ -118,13 +116,6 @@ android {
             ndk {
                 println("Full compilation of arm64 architecture")
                 abiFilters.add("arm64-v8a")
-            }
-        }
-        create("x64") {
-            dimension = "mode"
-            ndk {
-                println("Full compilation of x64 architecture")
-                abiFilters.add("x86_64")
             }
         }
     }
@@ -144,11 +135,6 @@ android {
             useLegacyPackaging = true
             excludes += "lib/armeabi/**"
             excludes += "lib/x86/**"
-            excludes += "lib/x86_64/libBaiduMapSDK**"
-            excludes += "lib/x86_64/libc++_shared.so"
-            excludes += "lib/x86_64/libc++_shared.so"
-            excludes += "lib/x86_64/liblocSDK8b.so"
-            excludes += "lib/x86_64/libtiny_magic.so"
         }
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

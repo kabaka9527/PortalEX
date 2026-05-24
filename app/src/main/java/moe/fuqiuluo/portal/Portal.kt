@@ -2,9 +2,9 @@ package moe.fuqiuluo.portal
 
 import android.app.Application
 import android.content.Context
-import com.baidu.location.LocationClient
-import com.baidu.mapapi.CoordType
-import com.baidu.mapapi.SDKInitializer
+import com.amap.api.location.AMapLocationClient
+import com.amap.api.maps.MapsInitializer
+import com.amap.api.services.core.ServiceSettings
 import com.tencent.bugly.crashreport.CrashReport
 import moe.fuqiuluo.portal.android.Bugly
 
@@ -13,11 +13,16 @@ class Portal: Application() {
     override fun onCreate() {
         super.onCreate()
 
-        SDKInitializer.setAgreePrivacy(this, true)
-        LocationClient.setAgreePrivacy(true)
+        MapsInitializer.updatePrivacyShow(this, true, true)
+        MapsInitializer.updatePrivacyAgree(this, true)
+        AMapLocationClient.updatePrivacyShow(this, true, true)
+        AMapLocationClient.updatePrivacyAgree(this, true)
+        ServiceSettings.updatePrivacyShow(this, true, true)
+        ServiceSettings.updatePrivacyAgree(this, true)
 
-        SDKInitializer.initialize(this)
-        SDKInitializer.setCoordType(DEFAULT_COORD_TYPE)
+        MapsInitializer.setApiKey(AMAP_API_KEY)
+        AMapLocationClient.setApiKey(AMAP_API_KEY)
+        ServiceSettings.getInstance().setApiKey(AMAP_API_KEY)
 
         CrashReport.initCrashReport(applicationContext)
 
@@ -32,11 +37,8 @@ class Portal: Application() {
     }
 
     companion object {
-        val DEFAULT_COORD_TYPE = CoordType.GCJ02
-        const val DEFAULT_COORD_STR = "GCJ02"
+        const val AMAP_API_KEY = "2dc4445618374715234af41ee7d6ae89"
 
         lateinit var appContext: Context
-        //val DEFAULT_COORD_TYPE = CoordType.BD09LL
-        //const val DEFAULT_COORD_STR = "bd09ll"
     }
 }

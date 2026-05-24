@@ -16,18 +16,17 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.Navigation
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.alibaba.fastjson2.JSON
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import moe.fuqiuluo.portal.R
-import moe.fuqiuluo.portal.android.root.ShellUtils
 import moe.fuqiuluo.portal.android.widget.RockerView
 import moe.fuqiuluo.portal.android.window.OverlayUtils
 import moe.fuqiuluo.portal.databinding.FragmentRouteMockBinding
@@ -35,7 +34,7 @@ import moe.fuqiuluo.portal.ext.altitude
 import moe.fuqiuluo.portal.ext.drawOverOtherAppsEnabled
 import moe.fuqiuluo.portal.ext.hookSensor
 import moe.fuqiuluo.portal.ext.jsonHistoricalRoutes
-import moe.fuqiuluo.portal.ext.needOpenSELinux
+import moe.fuqiuluo.portal.ext.routeLoopCount
 import moe.fuqiuluo.portal.ext.selectRoute
 import moe.fuqiuluo.portal.ext.speed
 import moe.fuqiuluo.portal.service.MockServiceHelper
@@ -57,6 +56,7 @@ class RouteMockFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRouteMockBinding.inflate(inflater, container, false)
+        updateRouteLoopText()
 
         if (mockServiceViewModel.isServiceStart()) {
             binding.switchMock.text = "停止模拟"
@@ -142,6 +142,10 @@ class RouteMockFragment : Fragment() {
         requireContext().selectRoute?.let {
             binding.mockRouteName.text = it.name
             mockServiceViewModel.selectedRoute = it
+        }
+
+        binding.mockRouteLoop.setOnClickListener {
+            showRouteLoopDialog()
         }
 
 
@@ -240,6 +244,7 @@ class RouteMockFragment : Fragment() {
                 Toast.makeText(requireContext(), "长按", Toast.LENGTH_SHORT).show()
             } else {
                 binding.mockRouteName.text = route.name
+                updateRouteLoopText()
                 mockServiceViewModel.selectedRoute = route
                 requireContext().selectRoute = route
 
@@ -438,5 +443,32 @@ class RouteMockFragment : Fragment() {
                 button.icon = it
             }
         }
+
+    private fun updateRouteLoopText() {
+        binding.mockRouteLoop.text = "循环 ${requireContext().routeLoopCount} 次"
+    }
+
+    private fun showRouteLoopDialog() {
+        val input = TextInputEditText(requireContext()).apply {
+            setText(requireContext().routeLoopCount.toString())
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            hint = getString(R.string.route_loop)
+            setSelectAllOnFocus(true)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.route_loop)
+            .setView(input)
+            .setPositiveButton("确定") { _, _ ->
+                val value = input.text?.toString()?.toIntOrNull()?.coerceAtLeast(1)
+                if (value == null) {
+                    showToast("请输入有效次数")
+                    return@setPositiveButton
+                }
+                requireContext().routeLoopCount = value
+                updateRouteLoopText()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
 
 }

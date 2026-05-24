@@ -19,10 +19,10 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
--keep class com.baidu.** {*;}
--keep class vi.com.** {*;}
--keep class com.baidu.vi.** {*;}
--dontwarn com.baidu.**
+-keep class com.amap.api.** {*;}
+-keep class com.autonavi.** {*;}
+-dontwarn com.amap.api.**
+-dontwarn com.autonavi.**
 
 -keepclassmembers class com.dd.StrokeGradientDrawable {
     public void setStrokeColor(int);

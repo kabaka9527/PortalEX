@@ -3,7 +3,7 @@ package moe.fuqiuluo.portal.ext
 import android.content.Context
 import androidx.core.content.edit
 import com.alibaba.fastjson2.JSON
-import com.baidu.mapapi.map.BaiduMap
+import com.amap.api.maps.AMap
 import moe.fuqiuluo.portal.service.MockServiceHelper
 import moe.fuqiuluo.portal.ui.mock.HistoricalLocation
 import moe.fuqiuluo.portal.ui.mock.HistoricalRoute
@@ -80,7 +80,7 @@ var Context.minSatelliteCount: Int
     }
 
 var Context.mapType: Int
-    get() = sharedPrefs.getInt("mapType", BaiduMap.MAP_TYPE_NORMAL)
+    get() = sharedPrefs.getInt("mapType", AMap.MAP_TYPE_NORMAL)
     set(value) = sharedPrefs.edit {
         putInt("mapType", value)
     }
@@ -100,6 +100,12 @@ var Context.speed: Double
     get() = sharedPrefs.getFloat("speed", FakeLoc.speed.toFloat()).toDouble()
     set(value) = sharedPrefs.edit {
         putFloat("speed", value.toFloat())
+    }
+
+var Context.routeLoopCount: Int
+    get() = sharedPrefs.getInt("routeLoopCount", 1).coerceAtLeast(1)
+    set(value) = sharedPrefs.edit {
+        putInt("routeLoopCount", value.coerceAtLeast(1))
     }
 
 var Context.altitude: Double
@@ -249,4 +255,3 @@ var Context.loopBroadcastlocation: Boolean
         putBoolean("loopBroadcastLocation", value)
         FakeLoc.loopBroadcastLocation = value
     }
-

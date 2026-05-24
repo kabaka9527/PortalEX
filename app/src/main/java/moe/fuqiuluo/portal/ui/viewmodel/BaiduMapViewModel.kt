@@ -2,19 +2,19 @@ package moe.fuqiuluo.portal.ui.viewmodel
 
 import android.app.Notification
 import androidx.lifecycle.ViewModel
-import com.baidu.location.LocationClient
-import com.baidu.mapapi.map.BaiduMap
-import com.baidu.mapapi.map.BitmapDescriptor
-import com.baidu.mapapi.map.BitmapDescriptorFactory
-import com.baidu.mapapi.map.MyLocationConfiguration
+import com.amap.api.location.AMapLocationClient
+import com.amap.api.maps.AMap
+import com.amap.api.maps.model.BitmapDescriptor
+import com.amap.api.maps.model.BitmapDescriptorFactory
+import com.amap.api.maps.model.MyLocationStyle
 import moe.fuqiuluo.portal.R
-import com.baidu.mapapi.search.geocode.GeoCoder
+import com.amap.api.services.geocoder.GeocodeSearch
 import moe.fuqiuluo.portal.bdmap.setMapConfig
 
 class BaiduMapViewModel: ViewModel() {
     var isExists = false
-    lateinit var baiduMap: BaiduMap
-    lateinit var mLocationClient: LocationClient
+    lateinit var baiduMap: AMap
+    lateinit var mLocationClient: AMapLocationClient
 
     /**
      * Current location
@@ -39,7 +39,7 @@ class BaiduMapViewModel: ViewModel() {
     /**
      * 2024.10.10: Cancels the default follow perspective
      */
-    var perspectiveState = MyLocationConfiguration.LocationMode.NORMAL
+    var perspectiveState = MyLocationStyle.LOCATION_TYPE_SHOW
         set(value) {
             field = value
             baiduMap.setMapConfig(value, null)
@@ -49,5 +49,5 @@ class BaiduMapViewModel: ViewModel() {
         BitmapDescriptorFactory.fromResource(R.drawable.icon_selected_location_16)
     }
 
-    var mGeoCoder: GeoCoder? = null
+    var mGeoCoder: GeocodeSearch? = null
 }

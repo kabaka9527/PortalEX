@@ -23,6 +23,9 @@
     <string name="loc_detail_text">逆地理编码，根据经纬度获取地址信息</string>
     <string name="latlon">经纬度</string>
     <string name="route_set">路线经纬度</string>
+    <string name="route_loop">循环次数</string>
+    <string name="route_loop_default">循环 1 次</string>
+    <string name="search_route_point">搜索地点</string>
     <string name="address">地址</string>
     <string name="input_lat">请输入纬度</string>
     <string name="input_lon">请输入经度</string>
