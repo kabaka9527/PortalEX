@@ -243,7 +243,15 @@ class MockFragment : Fragment() {
             try {
                 withContext(Dispatchers.IO) {
                     mockServiceViewModel.locationManager!!.let {
-                        if (MockServiceHelper.tryOpenMock(it, speed, altitude, accuracy)) {
+                        if (MockServiceHelper.tryOpenMock(
+                                it,
+                                speed,
+                                altitude,
+                                accuracy,
+                                selectedLocation.lat,
+                                selectedLocation.lon
+                            )
+                        ) {
                             updateMockButtonState(button, "停止模拟", R.drawable.rounded_play_disabled_24)
                         } else {
                             showToast("模拟服务启动失败")

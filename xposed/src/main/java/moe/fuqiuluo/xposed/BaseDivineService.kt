@@ -44,6 +44,7 @@ abstract class BaseDivineService {
 
         if (!locationManager.isProviderEnabled("portal")) {
             if (retryCount > 10) {
+                Logger.error("Portal provider is not enabled in $from")
                 return false
             }
             Thread.sleep(100)
@@ -64,6 +65,10 @@ abstract class BaseDivineService {
         }
 
         syncConfig(locationManager, randomKey)
+        Logger.info(
+            "DivineService($from) synced: enable=${FakeLoc.enable}, " +
+                    "sensorHook=${FakeLoc.enableSensorHook}, speed=${FakeLoc.speed}"
+        )
 
         rely.putBinder("proxy", object: Binder() {
             override fun getInterfaceDescriptor(): String {

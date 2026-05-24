@@ -126,6 +126,8 @@ object MockServiceHelper {
         speed: Double,
         altitude: Double,
         accuracy: Float,
+        lat: Double? = null,
+        lon: Double? = null,
     ): Boolean {
         if (!::randomKey.isInitialized) {
             return false
@@ -135,6 +137,10 @@ object MockServiceHelper {
         rely.putDouble("speed", speed)
         rely.putDouble("altitude", altitude)
         rely.putFloat("accuracy", accuracy)
+        if (lat != null && lon != null) {
+            rely.putDouble("lat", lat)
+            rely.putDouble("lon", lon)
+        }
         startLoopBroadcastLocation(locationManager)
         return if(locationManager.sendExtraCommand(PROVIDER_NAME, randomKey, rely)) {
             isMockStart(locationManager)

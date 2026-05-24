@@ -314,6 +314,10 @@ class RouteMockFragment : Fragment() {
             showToast("请选择一个路线")
             return
         }
+        if (selectedRoute.route.isEmpty()) {
+            showToast("路线没有坐标点")
+            return
+        }
 
         if (mockServiceViewModel.locationManager == null) {
             showToast("定位服务加载异常")
@@ -333,12 +337,15 @@ class RouteMockFragment : Fragment() {
 
             button.isClickable = false
             try {
-                withContext(Dispatchers.IO) {
+                val isReady = withContext(Dispatchers.IO) {
+                    val first = selectedRoute.route[0]
                     if (MockServiceHelper.tryOpenMock(
                             mockServiceViewModel.locationManager!!,
                             speed,
                             altitude,
-                            accuracy
+                            accuracy,
+                            first.first,
+                            first.second
                         )
                     ) {
                         updateMockButtonState(
@@ -348,20 +355,24 @@ class RouteMockFragment : Fragment() {
                         )
                     } else {
                         showToast("模拟服务启动失败")
-                        return@withContext
+                        return@withContext false
                     }
 
-                    val first = selectedRoute.route[0]
-                    if (MockServiceHelper.setLocation(
+                    return@withContext if (MockServiceHelper.setLocation(
                             mockServiceViewModel.locationManager!!,
                             first.first,
                             first.second
                         )
                     ) {
                         showToast("更新路线起点位置成功")
+                        true
                     } else {
                         showToast("更新位置失败")
+                        false
                     }
+                }
+                if (isReady) {
+                    mockServiceViewModel.startRouteMock()
                 }
             } finally {
                 button.isClickable = true
@@ -403,8 +414,11 @@ class RouteMockFragment : Fragment() {
                     binding.rocker.isClickable = false
                     binding.rocker.toggle()
                     mockServiceViewModel.rocker.hide()
-                    mockServiceViewModel.rockerCoroutineController.pause()
                     binding.rocker.isClickable = true
+                }
+                if (isClosed) {
+                    mockServiceViewModel.stopRouteMock()
+                    mockServiceViewModel.rockerCoroutineController.pause()
                 }
             } finally {
                 button.isClickable = true

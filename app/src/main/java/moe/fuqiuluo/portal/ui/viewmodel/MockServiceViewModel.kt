@@ -95,7 +95,7 @@ class MockServiceViewModel : ViewModel() {
         FakeLoc.altitude = activity.altitude
         FakeLoc.accuracy = activity.accuracy
 
-        if (!::routeMockJob.isInitialized || routeMockJob.isCancelled) {
+        if (!::routeMockJob.isInitialized || !routeMockJob.isActive) {
             routeMockCoroutine.pause()
             val delayTime = activity.reportDuration.toLong()
             // 每次启动路线模拟时重置累计距离（保证衰减从头开始）
@@ -207,6 +207,23 @@ class MockServiceViewModel : ViewModel() {
         }
 
         return rocker
+    }
+
+    fun startRouteMock() {
+        routeStage = 0
+        resetDistanceAccumulator()
+        if (::rocker.isInitialized) {
+            rocker.autoStatus = true
+        }
+        routeMockCoroutine.resume()
+    }
+
+    fun stopRouteMock() {
+        routeMockCoroutine.pause()
+        routeStage = 0
+        if (::rocker.isInitialized) {
+            rocker.autoStatus = false
+        }
     }
 
     fun isServiceStart(): Boolean {
