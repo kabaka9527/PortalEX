@@ -181,17 +181,28 @@ android {
 }
 
 fun configureAppSigningConfigsForRelease(project: Project) {
-    val keystorePath: String? = System.getenv("KEYSTORE_PATH")
-    if (keystorePath.isNullOrBlank()) {
+    val keystorePath = System.getenv("KEYSTORE_PATH")
+    val keystorePassword = System.getenv("KEYSTORE_PASSWORD")
+    val keyAlias = System.getenv("KEY_ALIAS")
+    val keyPassword = System.getenv("KEY_PASSWORD")
+    if (
+        keystorePath.isNullOrBlank()
+        || keystorePassword.isNullOrBlank()
+        || keyAlias.isNullOrBlank()
+        || keyPassword.isNullOrBlank()
+        || !project.file(keystorePath).isFile
+        || project.file(keystorePath).length() == 0L
+    ) {
+        println("Release signing config is incomplete; building unsigned release artifacts.")
         return
     }
     project.configure<ApplicationExtension> {
         signingConfigs {
             create("release") {
-                storeFile = file(System.getenv("KEYSTORE_PATH"))
-                storePassword = System.getenv("KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("KEY_ALIAS")
-                keyPassword = System.getenv("KEY_PASSWORD")
+                storeFile = file(keystorePath)
+                storePassword = keystorePassword
+                keyAlias = keyAlias
+                keyPassword = keyPassword
                 enableV2Signing = true
             }
         }
@@ -262,4 +273,3 @@ fun getVersionCode(): Int {
 fun getVersionName(): String {
     return getGitCommitHash()
 }
-
