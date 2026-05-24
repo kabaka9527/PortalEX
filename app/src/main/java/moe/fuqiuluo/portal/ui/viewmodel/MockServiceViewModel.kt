@@ -26,6 +26,12 @@ import moe.fuqiuluo.xposed.utils.FakeLoc
 import net.sf.geographiclib.Geodesic
 
 class MockServiceViewModel : ViewModel() {
+    private companion object {
+        const val ROUTE_MIN_WALKING_SPEED = 0.8
+        const val ROUTE_MAX_WALKING_SPEED = 1.35
+        const val ROUTE_SPEED_AMPLITUDE = 0.05
+    }
+
     lateinit var rocker: Rocker
     private lateinit var rockerJob: Job
     private lateinit var routeMockJob: Job
@@ -116,9 +122,13 @@ class MockServiceViewModel : ViewModel() {
                 val route = selectedRoute?.route?.takeIf { it.isNotEmpty() } ?: continue
                 val loopCount = Portal.appContext.routeLoopCount.coerceAtLeast(1)
                 val baseSpeed = Portal.appContext.speed
+                    .takeIf { it.isFinite() && it > 0.0 }
+                    ?.coerceIn(ROUTE_MIN_WALKING_SPEED, ROUTE_MAX_WALKING_SPEED)
+                    ?: FakeLoc.speed
 
                 if (routeStage == 0) {
                     MockServiceHelper.setLocation(manager, route[0].first, route[0].second)
+                    MockServiceHelper.setSpeedAmplitude(manager, ROUTE_SPEED_AMPLITUDE)
                     routeStage = 1
                 }
 

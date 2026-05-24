@@ -44,6 +44,11 @@ import moe.fuqiuluo.xposed.utils.FakeLoc
 import androidx.navigation.findNavController
 
 class RouteMockFragment : Fragment() {
+    private companion object {
+        const val ROUTE_MIN_WALKING_SPEED = 0.8
+        const val ROUTE_MAX_WALKING_SPEED = 1.35
+    }
+
     private var _binding: FragmentRouteMockBinding? = null
     private val binding get() = _binding!!
 
@@ -337,6 +342,9 @@ class RouteMockFragment : Fragment() {
         lifecycleScope.launch {
             val context = requireContext()
             val speed = context.speed
+                .takeIf { it.isFinite() && it > 0.0 }
+                ?.coerceIn(ROUTE_MIN_WALKING_SPEED, ROUTE_MAX_WALKING_SPEED)
+                ?: FakeLoc.speed
             val altitude = context.altitude
             val accuracy = FakeLoc.accuracy
 

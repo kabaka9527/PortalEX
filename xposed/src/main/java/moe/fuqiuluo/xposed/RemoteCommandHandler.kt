@@ -139,7 +139,7 @@ object RemoteCommandHandler {
                 return true
             }
             "set_speed_amp" -> {
-                val speedAmplitude = rely.getDouble("speed_amplitude", 1.0)
+                val speedAmplitude = rely.getDouble("speed_amplitude", FakeLoc.speedAmplitude)
                 FakeLoc.speedAmplitude = speedAmplitude
                 return true
             }

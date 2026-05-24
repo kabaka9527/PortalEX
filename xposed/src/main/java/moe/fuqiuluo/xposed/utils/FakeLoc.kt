@@ -115,7 +115,7 @@ object FakeLoc {
 
     @Volatile var speed = 1.35
 
-    var speedAmplitude = 1.0
+    var speedAmplitude = 0.05
 
     @Volatile var hasBearings = false
 
