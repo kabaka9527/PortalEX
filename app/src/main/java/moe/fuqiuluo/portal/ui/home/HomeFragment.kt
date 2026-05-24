@@ -5,7 +5,9 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Color
+import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -44,6 +46,7 @@ import moe.fuqiuluo.portal.ext.mapType
 import moe.fuqiuluo.portal.ext.rawHistoricalLocations
 import moe.fuqiuluo.portal.ext.selectRoute
 import moe.fuqiuluo.portal.ext.wgs84
+import moe.fuqiuluo.portal.service.MockServiceHelper
 import moe.fuqiuluo.portal.ui.viewmodel.BaiduMapViewModel
 import moe.fuqiuluo.portal.ui.viewmodel.HomeViewModel
 import java.math.BigDecimal
@@ -323,6 +326,22 @@ class HomeFragment : Fragment() {
                 CameraUpdateFactory.newLatLngZoom(it.gcj02, 19f)
             )
             return
+        }
+
+        val locationManager = requireContext().getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+        if (locationManager != null) {
+            if (!MockServiceHelper.isServiceInit()) {
+                MockServiceHelper.tryInitService(locationManager)
+            }
+            MockServiceHelper.getLocation(locationManager)
+                ?.takeIf { (lat, lon) -> lat != 0.0 || lon != 0.0 }
+                ?.let {
+                    baiduMapViewModel.currentLocation = it
+                    baiduMapViewModel.baiduMap.animateCamera(
+                        CameraUpdateFactory.newLatLngZoom(it.gcj02, 19f)
+                    )
+                    return
+                }
         }
 
         moveToCurrentLocationOnNextFix = true
