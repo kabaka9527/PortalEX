@@ -49,9 +49,6 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          if [ -n "${SIGN_KEYSTORE_BASE64}" ]; then
-            echo "${SIGN_KEYSTORE_BASE64}" | base64 -d > keystore.jks
-          fi
           chmod +x ./gradlew
           ./gradlew :app:assembleRelease --build-cache --parallel --warning-mode all --stacktrace
           mkdir -p artifacts
@@ -64,11 +61,10 @@ jobs:
           echo "APK_FILE_X86_64=$(find artifacts -name '*-x86_64.apk')" >> $GITHUB_ENV
           ls -lh artifacts
         env:
-          SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
-          KEYSTORE_PATH: "../keystore.jks"
-          KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.SIGN_KEY_PASSWORD }}
+          KEYSTORE_PATH: "../config/signing/portal-debug.keystore"
+          KEYSTORE_PASSWORD: android
+          KEY_ALIAS: portaldebugkey
+          KEY_PASSWORD: android
 
       - name: Set Portal Version
         run: |
@@ -82,6 +78,8 @@ jobs:
       - name: Show Artifacts SHA256
         run: |
           echo "### Build Success :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "Signing SHA1: C8:AF:A1:71:64:0B:AC:4E:FA:43:EB:03:15:49:BE:E8:A0:E5:A9:6D" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "|ABI|SHA256|" >> $GITHUB_STEP_SUMMARY
           echo "|:--------:|:----------|" >> $GITHUB_STEP_SUMMARY
           all=($(sha256sum "${{ env.APK_FILE_ALL }}"))

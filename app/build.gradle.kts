@@ -181,6 +181,29 @@ android {
 }
 
 fun configureAppSigningConfigsForRelease(project: Project) {
+    val fixedDebugKeystore = project.rootProject.file("config/signing/portal-debug.keystore")
+    val fixedDebugStorePassword = "android"
+    val fixedDebugKeyAlias = "portaldebugkey"
+    val fixedDebugKeyPassword = "android"
+
+    project.configure<ApplicationExtension> {
+        signingConfigs {
+            create("portalDebug") {
+                storeFile = fixedDebugKeystore
+                storePassword = fixedDebugStorePassword
+                keyAlias = fixedDebugKeyAlias
+                keyPassword = fixedDebugKeyPassword
+                enableV1Signing = true
+                enableV2Signing = true
+            }
+        }
+        buildTypes {
+            debug {
+                signingConfig = signingConfigs.getByName("portalDebug")
+            }
+        }
+    }
+
     val keystorePath = System.getenv("KEYSTORE_PATH")
     val keystorePassword = System.getenv("KEYSTORE_PASSWORD")
     val signingKeyAlias = System.getenv("KEY_ALIAS")
@@ -193,11 +216,11 @@ fun configureAppSigningConfigsForRelease(project: Project) {
         || !project.file(keystorePath).isFile
         || project.file(keystorePath).length() == 0L
     ) {
-        println("Release signing config is incomplete; signing release artifacts with the debug key.")
+        println("Release signing config is incomplete; signing release artifacts with the fixed PortalEX debug key.")
         project.configure<ApplicationExtension> {
             buildTypes {
                 release {
-                    signingConfig = signingConfigs.getByName("debug")
+                    signingConfig = signingConfigs.getByName("portalDebug")
                 }
             }
         }
@@ -215,9 +238,6 @@ fun configureAppSigningConfigsForRelease(project: Project) {
         }
         buildTypes {
             release {
-                signingConfig = signingConfigs.findByName("release")
-            }
-            debug {
                 signingConfig = signingConfigs.findByName("release")
             }
         }
