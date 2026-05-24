@@ -183,13 +183,13 @@ android {
 fun configureAppSigningConfigsForRelease(project: Project) {
     val keystorePath = System.getenv("KEYSTORE_PATH")
     val keystorePassword = System.getenv("KEYSTORE_PASSWORD")
-    val keyAlias = System.getenv("KEY_ALIAS")
-    val keyPassword = System.getenv("KEY_PASSWORD")
+    val signingKeyAlias = System.getenv("KEY_ALIAS")
+    val signingKeyPassword = System.getenv("KEY_PASSWORD")
     if (
         keystorePath.isNullOrBlank()
         || keystorePassword.isNullOrBlank()
-        || keyAlias.isNullOrBlank()
-        || keyPassword.isNullOrBlank()
+        || signingKeyAlias.isNullOrBlank()
+        || signingKeyPassword.isNullOrBlank()
         || !project.file(keystorePath).isFile
         || project.file(keystorePath).length() == 0L
     ) {
@@ -201,8 +201,8 @@ fun configureAppSigningConfigsForRelease(project: Project) {
             create("release") {
                 storeFile = file(keystorePath)
                 storePassword = keystorePassword
-                keyAlias = keyAlias
-                keyPassword = keyPassword
+                keyAlias = signingKeyAlias
+                keyPassword = signingKeyPassword
                 enableV2Signing = true
             }
         }
