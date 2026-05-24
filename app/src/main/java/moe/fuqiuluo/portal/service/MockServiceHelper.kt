@@ -22,7 +22,11 @@ import moe.fuqiuluo.portal.ext.needDowngradeToCdma
 import moe.fuqiuluo.portal.ext.speed
 import moe.fuqiuluo.portal.ext.reportDuration
 import moe.fuqiuluo.portal.ext.loopBroadcastlocation
+import moe.fuqiuluo.portal.ext.hookSensor
+import moe.fuqiuluo.portal.ext.manualStepFrequencySpm
 import moe.fuqiuluo.xposed.utils.FakeLoc
+import moe.fuqiuluo.portal.ext.stepCadenceMode
+import moe.fuqiuluo.portal.ext.stepLengthMeters
 import java.io.File
 
 object MockServiceHelper {
@@ -323,6 +327,10 @@ object MockServiceHelper {
         FakeLoc.enableNMEA = context.enableNMEA
         FakeLoc.disableRequestGeofence = !context.enableRequestGeofence
         FakeLoc.disableGetFromLocation = !context.enableGetFromLocation
+        FakeLoc.enableSensorHook = context.hookSensor
+        FakeLoc.stepCadenceMode = context.stepCadenceMode
+        FakeLoc.stepLengthMeters = context.stepLengthMeters
+        FakeLoc.manualStepFrequencySpm = context.manualStepFrequencySpm
 
         val rely = Bundle()
         rely.putString("command_id", "put_config")
@@ -339,6 +347,10 @@ object MockServiceHelper {
         rely.putBoolean("enable_nmea", FakeLoc.enableNMEA)
         rely.putBoolean("disable_request_geofence", FakeLoc.disableRequestGeofence)
         rely.putBoolean("disable_get_from_location", FakeLoc.disableGetFromLocation)
+        rely.putBoolean("enable_sensor_hook", FakeLoc.enableSensorHook)
+        rely.putString("step_cadence_mode", FakeLoc.stepCadenceMode.name)
+        rely.putDouble("step_length_meters", FakeLoc.stepLengthMeters)
+        rely.putDouble("manual_step_frequency_spm", FakeLoc.manualStepFrequencySpm)
 
         return locationManager.sendExtraCommand(PROVIDER_NAME, randomKey, rely)
     }

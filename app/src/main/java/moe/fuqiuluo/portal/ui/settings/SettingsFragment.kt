@@ -27,14 +27,18 @@ import moe.fuqiuluo.portal.ext.disableRegisterLocationListener
 import moe.fuqiuluo.portal.ext.disableWifiScan
 import moe.fuqiuluo.portal.ext.hookSensor
 import moe.fuqiuluo.portal.ext.loopBroadcastlocation
+import moe.fuqiuluo.portal.ext.manualStepFrequencySpm
 import moe.fuqiuluo.portal.ext.minSatelliteCount
 import moe.fuqiuluo.portal.ext.needDowngradeToCdma
 import moe.fuqiuluo.portal.ext.needOpenSELinux
 import moe.fuqiuluo.portal.ext.reportDuration
 import moe.fuqiuluo.portal.ext.speed
+import moe.fuqiuluo.portal.ext.stepCadenceMode
+import moe.fuqiuluo.portal.ext.stepLengthMeters
 import moe.fuqiuluo.portal.service.MockServiceHelper
 import moe.fuqiuluo.portal.ui.viewmodel.MockServiceViewModel
 import moe.fuqiuluo.portal.ui.viewmodel.SettingsViewModel
+import moe.fuqiuluo.xposed.hooks.sensor.StepCadenceMode
 import kotlin.getValue
 
 class SettingsFragment : Fragment() {
@@ -72,6 +76,9 @@ class SettingsFragment : Fragment() {
         binding.accuracyValue.text = "%.2f米".format(context.accuracy)
         binding.reportDurationValue.text = "%dms".format(context.reportDuration)
         binding.satelliteCountValue.text = "%d颗".format(context.minSatelliteCount)
+        binding.stepCadenceModeValue.text = context.stepCadenceMode.displayName()
+        binding.stepLengthValue.text = "%.2f米".format(context.stepLengthMeters)
+        binding.manualStepFrequencyValue.text = "%.0f步/分".format(context.manualStepFrequencySpm)
 
         binding.altitudeLayout.setOnClickListener {
             showDialog("设置海拔高度", binding.altitudeValue.text.toString().let { it.substring(0, it.length - 1) }) {
@@ -190,6 +197,55 @@ class SettingsFragment : Fragment() {
             }
         })
 
+        binding.stepCadenceModeLayout.setOnClickListener {
+            val modes = arrayOf(StepCadenceMode.AUTO, StepCadenceMode.MANUAL)
+            val labels = modes.map { it.displayName() }.toTypedArray()
+            val checked = modes.indexOf(context.stepCadenceMode).coerceAtLeast(0)
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("设置步频模式")
+                .setSingleChoiceItems(labels, checked) { dialog, which ->
+                    val mode = modes[which]
+                    context.stepCadenceMode = mode
+                    binding.stepCadenceModeValue.text = mode.displayName()
+                    updateRemoteConfig()
+                    dialog.dismiss()
+                }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+
+        binding.stepLengthLayout.setOnClickListener {
+            showDialog("设置模拟步幅", binding.stepLengthValue.text.toString().let { it.substring(0, it.length - 1) }) {
+                val value = it.toDoubleOrNull()
+                if (value == null || value < 0.30) {
+                    showToast("步幅不能小于0.30米")
+                    return@showDialog
+                } else if (value > 1.50) {
+                    showToast("步幅不能大于1.50米")
+                    return@showDialog
+                }
+                context.stepLengthMeters = value
+                binding.stepLengthValue.text = "%.2f米".format(value)
+                updateRemoteConfig()
+            }
+        }
+
+        binding.manualStepFrequencyLayout.setOnClickListener {
+            showDialog("设置手动步频", binding.manualStepFrequencyValue.text.toString().let { it.substring(0, it.length - 3) }) {
+                val value = it.toDoubleOrNull()
+                if (value == null || value < 0.0) {
+                    showToast("步频不合法")
+                    return@showDialog
+                } else if (value > 240.0) {
+                    showToast("步频不能大于240步/分")
+                    return@showDialog
+                }
+                context.manualStepFrequencySpm = value
+                binding.manualStepFrequencyValue.text = "%.0f步/分".format(value)
+                updateRemoteConfig()
+            }
+        }
+
         binding.reportDurationLayout.setOnClickListener {
             showDialog("设置上报间隔", binding.reportDurationValue.text.toString().let {
                 it.substring(0, it.length - 2)
@@ -265,6 +321,13 @@ class SettingsFragment : Fragment() {
             } else {
                 showToast("同步配置成功")
             }
+        }
+    }
+
+    private fun StepCadenceMode.displayName(): String {
+        return when (this) {
+            StepCadenceMode.AUTO -> "自动"
+            StepCadenceMode.MANUAL -> "手动"
         }
     }
 

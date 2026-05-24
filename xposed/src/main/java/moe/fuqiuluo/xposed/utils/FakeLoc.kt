@@ -1,6 +1,7 @@
 package moe.fuqiuluo.xposed.utils
 
 import android.location.Location
+import moe.fuqiuluo.xposed.hooks.sensor.StepCadenceMode
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -92,6 +93,14 @@ object FakeLoc {
      * 反定位复原加强（启用后将导致部分应用在关闭Portal后需要重新启动才能重新获取定位）
      */
     var loopBroadcastLocation = false
+
+    /**
+     * 是否劫持计步传感器数据
+     */
+    @Volatile var enableSensorHook = false
+    @Volatile var stepCadenceMode = StepCadenceMode.AUTO
+    @Volatile var stepLengthMeters = 0.70
+    @Volatile var manualStepFrequencySpm = 120.0
 
     /**
      * 上一次的位置

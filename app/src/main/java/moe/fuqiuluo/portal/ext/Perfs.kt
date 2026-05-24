@@ -7,6 +7,7 @@ import com.baidu.mapapi.map.BaiduMap
 import moe.fuqiuluo.portal.service.MockServiceHelper
 import moe.fuqiuluo.portal.ui.mock.HistoricalLocation
 import moe.fuqiuluo.portal.ui.mock.HistoricalRoute
+import moe.fuqiuluo.xposed.hooks.sensor.StepCadenceMode
 import moe.fuqiuluo.xposed.utils.FakeLoc
 
 val Context.sharedPrefs
@@ -126,9 +127,31 @@ var Context.needDowngradeToCdma: Boolean
     }
 
 var Context.hookSensor: Boolean
-    get() = sharedPrefs.getBoolean("hookSensor", false)
+    get() = sharedPrefs.getBoolean("hookSensor", FakeLoc.enableSensorHook)
     set(value) = sharedPrefs.edit {
         putBoolean("hookSensor", value)
+        FakeLoc.enableSensorHook = value
+    }
+
+var Context.stepCadenceMode: StepCadenceMode
+    get() = StepCadenceMode.from(sharedPrefs.getString("stepCadenceMode", FakeLoc.stepCadenceMode.name))
+    set(value) = sharedPrefs.edit {
+        putString("stepCadenceMode", value.name)
+        FakeLoc.stepCadenceMode = value
+    }
+
+var Context.stepLengthMeters: Double
+    get() = sharedPrefs.getFloat("stepLengthMeters", FakeLoc.stepLengthMeters.toFloat()).toDouble()
+    set(value) = sharedPrefs.edit {
+        putFloat("stepLengthMeters", value.toFloat())
+        FakeLoc.stepLengthMeters = value
+    }
+
+var Context.manualStepFrequencySpm: Double
+    get() = sharedPrefs.getFloat("manualStepFrequencySpm", FakeLoc.manualStepFrequencySpm.toFloat()).toDouble()
+    set(value) = sharedPrefs.edit {
+        putFloat("manualStepFrequencySpm", value.toFloat())
+        FakeLoc.manualStepFrequencySpm = value
     }
 
 //var Context.updateInterval: Long
@@ -226,5 +249,4 @@ var Context.loopBroadcastlocation: Boolean
         putBoolean("loopBroadcastLocation", value)
         FakeLoc.loopBroadcastLocation = value
     }
-
 

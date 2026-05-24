@@ -3,10 +3,12 @@ package moe.fuqiuluo.xposed.hooks.sensor
 
 import android.content.pm.FeatureInfo
 import android.hardware.Sensor
+import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.util.ArrayMap
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
+import moe.fuqiuluo.xposed.BaseDivineService
 import moe.fuqiuluo.xposed.utils.FakeLoc
 import moe.fuqiuluo.xposed.utils.Logger
 import moe.fuqiuluo.xposed.utils.afterHook
@@ -19,10 +21,16 @@ import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 
 // https://github.com/Frazew/VirtualSensor/blob/master/app/src/main/java/fr/frazew/virtualgyroscope/XposedMod.java#L298
-object SystemSensorManagerHook {
+object SystemSensorManagerHook: BaseDivineService() {
     private val listenerMap = ConcurrentHashMap<SensorEventListener, Int>()
+    private val stepCounterStates = ConcurrentHashMap<SensorEventListener, StepSimulationState>()
+    private val stepDetectorStates = ConcurrentHashMap<SensorEventListener, StepSimulationState>()
 
     operator fun invoke(classLoader: ClassLoader) {
+        if (!FakeLoc.isSystemServerProcess) {
+            initDivineService("Sensor")
+        }
+
         unlockGeoSensor(classLoader)
 
         hookSystemSensorManager(classLoader)
@@ -73,9 +81,50 @@ object SystemSensorManagerHook {
 
             val sensor = args[1] as? Sensor ?: return@beforeHook
             listenerMap[listener] = sensor.type
+            if (sensor.type == Sensor.TYPE_STEP_DETECTOR) {
+                stepDetectorStates.putIfAbsent(listener, StepSimulationState())
+            }
 
-            // Hook onSensorChanged 并修改加速度计数据
             listener.javaClass.onceHookAllMethod("onSensorChanged", beforeHook {
+                val event = args.firstOrNull() as? SensorEvent ?: return@beforeHook
+                val eventListener = thisObject as? SensorEventListener ?: listener
+                if (!FakeLoc.enable || !FakeLoc.enableSensorHook) {
+                    return@beforeHook
+                }
+
+                when (event.sensor?.type) {
+                    Sensor.TYPE_STEP_COUNTER -> {
+                        val state = stepCounterStates.getOrPut(eventListener) {
+                            StepSimulationState(event.values.firstOrNull() ?: 0f)
+                        }
+                        event.values[0] = state.nextCounterValue(
+                            timestampNanos = event.timestamp,
+                            speedMetersPerSecond = FakeLoc.speed,
+                            stepLengthMeters = FakeLoc.stepLengthMeters,
+                            manualStepFrequencySpm = FakeLoc.manualStepFrequencySpm,
+                            mode = FakeLoc.stepCadenceMode,
+                            enabled = true
+                        )
+                    }
+                    Sensor.TYPE_STEP_DETECTOR -> {
+                        val state = stepDetectorStates.getOrPut(eventListener) {
+                            StepSimulationState()
+                        }
+                        val steps = state.nextDetectorSteps(
+                            timestampNanos = event.timestamp,
+                            speedMetersPerSecond = FakeLoc.speed,
+                            stepLengthMeters = FakeLoc.stepLengthMeters,
+                            manualStepFrequencySpm = FakeLoc.manualStepFrequencySpm,
+                            mode = FakeLoc.stepCadenceMode,
+                            enabled = true
+                        )
+                        if (steps <= 0) {
+                            result = null
+                        } else {
+                            event.values[0] = 1.0f
+                        }
+                    }
+                }
             })
         }
         cSystemSensorManager.declaredMethods.filter {
@@ -92,6 +141,8 @@ object SystemSensorManagerHook {
                 Logger.debug("UnregisterListenerImpl: $listener")
             }
             listenerMap.remove(listener)
+            stepCounterStates.remove(listener)
+            stepDetectorStates.remove(listener)
         }
         cSystemSensorManager.declaredMethods.filter {
             it.name == "unregisterListenerImpl" && it.parameterTypes.isNotEmpty()

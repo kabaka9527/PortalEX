@@ -10,6 +10,7 @@ import android.os.Parcel
 import moe.fuqiuluo.xposed.utils.BinderUtils
 import moe.fuqiuluo.xposed.utils.FakeLoc
 import moe.fuqiuluo.xposed.utils.Logger
+import moe.fuqiuluo.xposed.hooks.sensor.StepCadenceMode
 
 abstract class BaseDivineService {
     /**
@@ -121,6 +122,10 @@ abstract class BaseDivineService {
             FakeLoc.hideMock = rely.getBoolean("hide_mock", FakeLoc.hideMock)
             FakeLoc.hookWifi = rely.getBoolean("hook_wifi", FakeLoc.hookWifi)
             FakeLoc.needDowngradeToCdma = rely.getBoolean("need_downgrade_to_2g", FakeLoc.needDowngradeToCdma)
+            FakeLoc.enableSensorHook = rely.getBoolean("enable_sensor_hook", FakeLoc.enableSensorHook)
+            FakeLoc.stepCadenceMode = StepCadenceMode.from(rely.getString("step_cadence_mode"))
+            FakeLoc.stepLengthMeters = rely.getDouble("step_length_meters", FakeLoc.stepLengthMeters)
+            FakeLoc.manualStepFrequencySpm = rely.getDouble("manual_step_frequency_spm", FakeLoc.manualStepFrequencySpm)
             Logger.debug("Synced config for DivineService")
         } else {
             Logger.error("Failed to sync config for DivineService")

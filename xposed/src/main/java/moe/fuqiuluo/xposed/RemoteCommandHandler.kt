@@ -6,6 +6,7 @@ import android.os.IBinder
 import android.os.Parcel
 import moe.fuqiuluo.dobby.Dobby
 import moe.fuqiuluo.xposed.hooks.LocationServiceHook
+import moe.fuqiuluo.xposed.hooks.sensor.StepCadenceMode
 import moe.fuqiuluo.xposed.utils.FakeLoc
 import moe.fuqiuluo.xposed.utils.BinderUtils
 import moe.fuqiuluo.xposed.utils.Logger
@@ -228,6 +229,10 @@ object RemoteCommandHandler {
                 val enableNMEA = rely.getBoolean("enable_nmea", FakeLoc.enableNMEA)
                 val disableRequestGeofence = rely.getBoolean("disable_request_geofence", FakeLoc.disableRequestGeofence)
                 val disableGetFromLocation = rely.getBoolean("disable_get_from_location", FakeLoc.disableGetFromLocation)
+                val enableSensorHook = rely.getBoolean("enable_sensor_hook", FakeLoc.enableSensorHook)
+                val stepCadenceMode = StepCadenceMode.from(rely.getString("step_cadence_mode"))
+                val stepLengthMeters = rely.getDouble("step_length_meters", FakeLoc.stepLengthMeters)
+                val manualStepFrequencySpm = rely.getDouble("manual_step_frequency_spm", FakeLoc.manualStepFrequencySpm)
 
                 FakeLoc.enable = enable
                 FakeLoc.speed = speed
@@ -243,6 +248,10 @@ object RemoteCommandHandler {
                 FakeLoc.enableNMEA = enableNMEA
                 FakeLoc.disableRequestGeofence = disableRequestGeofence
                 FakeLoc.disableGetFromLocation = disableGetFromLocation
+                FakeLoc.enableSensorHook = enableSensorHook
+                FakeLoc.stepCadenceMode = stepCadenceMode
+                FakeLoc.stepLengthMeters = stepLengthMeters
+                FakeLoc.manualStepFrequencySpm = manualStepFrequencySpm
                 return true
             }
             "sync_config" -> {
@@ -265,6 +274,10 @@ object RemoteCommandHandler {
                 rely.putBoolean("hide_mock", FakeLoc.hideMock)
                 rely.putBoolean("hook_wifi", FakeLoc.hookWifi)
                 rely.putBoolean("need_downgrade_to_2g", FakeLoc.needDowngradeToCdma)
+                rely.putBoolean("enable_sensor_hook", FakeLoc.enableSensorHook)
+                rely.putString("step_cadence_mode", FakeLoc.stepCadenceMode.name)
+                rely.putDouble("step_length_meters", FakeLoc.stepLengthMeters)
+                rely.putDouble("manual_step_frequency_spm", FakeLoc.manualStepFrequencySpm)
                 return true
             }
             "broadcast_location" -> {

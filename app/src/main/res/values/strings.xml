@@ -62,7 +62,13 @@
     <string name="cdma">网络降级</string>
     <string name="cdma_desc">将网络降级为CDMA</string>
     <string name="hook_sensor">传感器劫持</string>
-    <string name="hook_sensor_desc">模拟步频（待完善）</string>
+    <string name="hook_sensor_desc">模拟计步器与步伐检测器数据</string>
+    <string name="step_cadence_mode">步频模式</string>
+    <string name="step_cadence_mode_desc">自动跟随速度或使用固定步频</string>
+    <string name="step_length">模拟步幅</string>
+    <string name="step_length_desc">自动模式按速度和步幅换算步频</string>
+    <string name="manual_step_frequency">手动步频</string>
+    <string name="manual_step_frequency_desc">手动模式每分钟模拟步数</string>
     <string name="show_route">显示路线</string>
     <string name="item_report_duration_title">位置上报间隔</string>
     <string name="item_report_duration_desc">上报位置的频率单位毫秒(ms)</string>
