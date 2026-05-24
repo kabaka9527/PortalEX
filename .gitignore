@@ -16,3 +16,6 @@ local.properties
 apk-keys
 app/google-services.json
 /.idea/
+!apk-keys/
+apk-keys/*
+!apk-keys/SHA1.md

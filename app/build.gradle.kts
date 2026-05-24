@@ -193,7 +193,14 @@ fun configureAppSigningConfigsForRelease(project: Project) {
         || !project.file(keystorePath).isFile
         || project.file(keystorePath).length() == 0L
     ) {
-        println("Release signing config is incomplete; building unsigned release artifacts.")
+        println("Release signing config is incomplete; signing release artifacts with the debug key.")
+        project.configure<ApplicationExtension> {
+            buildTypes {
+                release {
+                    signingConfig = signingConfigs.getByName("debug")
+                }
+            }
+        }
         return
     }
     project.configure<ApplicationExtension> {

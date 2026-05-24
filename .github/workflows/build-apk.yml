@@ -53,7 +53,9 @@ jobs:
 
       - name: Build with Gradle
         run: |
-          echo ${{ secrets.SIGN_KEYSTORE_BASE64 }} | base64 -d > keystore.jks
+          if [ -n "${SIGN_KEYSTORE_BASE64}" ]; then
+            echo "${SIGN_KEYSTORE_BASE64}" | base64 -d > keystore.jks
+          fi
           chmod +x ./gradlew
           ./gradlew :app:assembleRelease --build-cache --parallel --warning-mode all --stacktrace
           mkdir -p artifacts
@@ -66,6 +68,7 @@ jobs:
           echo "APK_FILE_X86_64=$(find artifacts -name '*-x86_64.apk')" >> $GITHUB_ENV
           ls -lh artifacts
         env:
+          SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
           KEYSTORE_PATH: "../keystore.jks"
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.SIGN_ALIAS }}
