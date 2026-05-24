@@ -52,9 +52,15 @@ jobs:
           echo ${{ secrets.SIGN_KEYSTORE_BASE64 }} | base64 -d > keystore.jks
           chmod +x ./gradlew
           ./gradlew :app:assembleRelease --build-cache --parallel --warning-mode all --stacktrace
-          echo "APK_FILE_ALL=$(find app/build/outputs/apk/app/release -name '*.apk')" >> $GITHUB_ENV
-          echo "APK_FILE_ARM64=$(find app/build/outputs/apk/arm64/release -name '*.apk')" >> $GITHUB_ENV
-          echo "APK_FILE_X86_64=$(find app/build/outputs/apk/x64/release -name '*.apk')" >> $GITHUB_ENV
+          mkdir -p artifacts
+          find app/build/outputs/apk/app/release -name '*.apk' -exec cp {} artifacts/ \;
+          find app/build/outputs/apk/arm64/release -name '*.apk' -exec cp {} artifacts/ \;
+          find app/build/outputs/apk/x64/release -name '*.apk' -exec cp {} artifacts/ \;
+          test "$(find artifacts -name '*.apk' | wc -l)" -eq 3
+          echo "APK_FILE_ALL=$(find artifacts -name '*-all.apk')" >> $GITHUB_ENV
+          echo "APK_FILE_ARM64=$(find artifacts -name '*-arm64.apk')" >> $GITHUB_ENV
+          echo "APK_FILE_X86_64=$(find artifacts -name '*-x86_64.apk')" >> $GITHUB_ENV
+          ls -lh artifacts
         env:
           KEYSTORE_PATH: "../keystore.jks"
           KEYSTORE_PASSWORD: ${{ secrets.SIGN_KEYSTORE_PASSWORD }}
@@ -85,17 +91,20 @@ jobs:
       - name: Upload ALL APK RELEASE
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ env.PORTAL_VERSION_ALL }}"
+          name: "${{ env.PORTAL_VERSION_ALL }}.apk"
           path: "${{ env.APK_FILE_ALL }}"
+          if-no-files-found: error
 
       - name: Upload ARM64 APK RELEASE
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ env.PORTAL_VERSION_ARM64 }}"
+          name: "${{ env.PORTAL_VERSION_ARM64 }}.apk"
           path: "${{ env.APK_FILE_ARM64 }}"
+          if-no-files-found: error
 
       - name: Upload X86_64 APK RELEASE
         uses: actions/upload-artifact@v4
         with:
-          name: "${{ env.PORTAL_VERSION_x86_64 }}"
+          name: "${{ env.PORTAL_VERSION_x86_64 }}.apk"
           path: "${{ env.APK_FILE_X86_64 }}"
+          if-no-files-found: error
