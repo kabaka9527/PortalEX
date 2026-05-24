@@ -359,7 +359,7 @@ class RouteEditFragment : Fragment() {
         val context = requireContext()
         val input = TextInputEditText(context).apply {
             hint = getString(R.string.search_route_point)
-            singleLine = true
+            setSingleLine(true)
         }
         val listView = ListView(context)
         val results = mutableListOf<Map<String, Any?>>()
