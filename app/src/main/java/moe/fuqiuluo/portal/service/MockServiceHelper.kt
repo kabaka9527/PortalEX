@@ -242,7 +242,7 @@ object MockServiceHelper {
         val rely = Bundle()
         rely.putString("command_id", "get_speed")
         if(locationManager.sendExtraCommand(PROVIDER_NAME, randomKey, rely)) {
-            return rely.getFloat("speed")
+            return rely.getDouble("speed").toFloat()
         }
         return null
     }

@@ -88,7 +88,7 @@ class FakeLocation: IXposedHookLoadPackage, IXposedHookZygoteInit {
                 TelephonyHook.hookSubOnTransact(lpparam.classLoader)
                 WlanHook(systemClassLoader)
                 AndroidFusedLocationProviderHook(lpparam.classLoader)
-                SystemSensorManagerHook(lpparam.classLoader)
+                SystemSensorManagerHook(lpparam.classLoader, lpparam.packageName, lpparam.processName)
 
                 ThirdPartyLocationHook(lpparam.classLoader)
             }
@@ -102,7 +102,7 @@ class FakeLocation: IXposedHookLoadPackage, IXposedHookZygoteInit {
                 OplusLocationHook(lpparam.classLoader)
             }
             else -> {
-                SystemSensorManagerHook(lpparam.classLoader)
+                SystemSensorManagerHook(lpparam.classLoader, lpparam.packageName, lpparam.processName)
             }
         }
     }

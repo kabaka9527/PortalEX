@@ -137,7 +137,7 @@ class HomeFragment : Fragment() {
         mLocationClient = AMapLocationClient(requireContext())
         val option = AMapLocationClientOption()
             .setGpsFirst(true)
-            .setMockEnable(false)
+            .setMockEnable(true)
             .setNeedAddress(true)
             .setSensorEnable(true)
             .setOffset(true)
@@ -147,7 +147,11 @@ class HomeFragment : Fragment() {
         mLocationClient.setLocationListener { loc ->
             if (loc == null) return@setLocationListener
             if (loc.errorCode != AMapLocation.LOCATION_SUCCESS) {
-                Log.e("HomeFragment", "AMap location error: ${loc.errorCode}, ${loc.errorInfo}")
+                Log.e(
+                    "HomeFragment",
+                    "AMap location error: code=${loc.errorCode}, info=${loc.errorInfo}, " +
+                            "detail=${loc.locationDetail}, type=${loc.locationType}, provider=${loc.provider}"
+                )
                 if (moveToCurrentLocationOnNextFix) {
                     moveToCurrentLocationOnNextFix = false
                     val context = context ?: return@setLocationListener

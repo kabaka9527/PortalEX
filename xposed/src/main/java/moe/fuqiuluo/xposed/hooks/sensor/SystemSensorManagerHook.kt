@@ -31,21 +31,45 @@ object SystemSensorManagerHook: BaseDivineService() {
     private val syntheticStepThreads = ConcurrentHashMap<SensorEventListener, Thread>()
     private val dispatchingSyntheticEvent = ThreadLocal<Boolean>()
 
-    operator fun invoke(classLoader: ClassLoader) {
+    operator fun invoke(classLoader: ClassLoader, packageName: String? = null, processName: String? = null) {
+        val forceSensorLog = packageName == "com.mi.health"
+        if (forceSensorLog) {
+            Logger.warn("Initializing sensor hook for $packageName/$processName")
+        }
+
         if (!FakeLoc.isSystemServerProcess) {
             initDivineService("Sensor")
+            if (forceSensorLog) {
+                Logger.warn(
+                    "Sensor hook config for $packageName/$processName: " +
+                            "enable=${FakeLoc.enable}, sensorHook=${FakeLoc.enableSensorHook}, " +
+                            "speed=${FakeLoc.speed}, mode=${FakeLoc.stepCadenceMode}, " +
+                            "stepLength=${FakeLoc.stepLengthMeters}, manualSpm=${FakeLoc.manualStepFrequencySpm}"
+                )
+            }
         }
 
         unlockGeoSensor(classLoader)
 
-        hookSystemSensorManager(classLoader)
-        hookSystemSensorManagerQueue(classLoader)
+        hookSystemSensorManager(classLoader, forceSensorLog, packageName, processName)
+        hookSystemSensorManagerQueue(classLoader, forceSensorLog, packageName, processName)
     }
 
-    private fun hookSystemSensorManagerQueue(classLoader: ClassLoader) {
+    private fun hookSystemSensorManagerQueue(
+        classLoader: ClassLoader,
+        forceSensorLog: Boolean,
+        packageName: String?,
+        processName: String?
+    ) {
         val cSystemSensorManagerQueue = XposedHelpers.findClassIfExists("android.hardware.SystemSensorManager\$SensorEventQueue", classLoader)
-            ?: return
+            ?: run {
+                if (forceSensorLog) {
+                    Logger.warn("SystemSensorManager.SensorEventQueue not found for $packageName/$processName")
+                }
+                return
+            }
 
+        var hookedCount = 0
         cSystemSensorManagerQueue.declaredMethods.filter {
             it.name == "dispatchSensorEvent" &&
                     it.parameterTypes.size >= 4 &&
@@ -96,7 +120,11 @@ object SystemSensorManagerHook: BaseDivineService() {
                     }
                 }
             })
+            hookedCount++
             Logger.info("Hooked SensorEventQueue.dispatchSensorEvent")
+        }
+        if (forceSensorLog) {
+            Logger.warn("Hooked SensorEventQueue.dispatchSensorEvent count=$hookedCount for $packageName/$processName")
         }
     }
 
@@ -119,10 +147,15 @@ object SystemSensorManagerHook: BaseDivineService() {
         }
     }
 
-    private fun hookSystemSensorManager(classLoader: ClassLoader) {
+    private fun hookSystemSensorManager(
+        classLoader: ClassLoader,
+        forceSensorLog: Boolean,
+        packageName: String?,
+        processName: String?
+    ) {
         val cSystemSensorManager = XposedHelpers.findClassIfExists("android.hardware.SystemSensorManager", classLoader)
         if (cSystemSensorManager == null) {
-            if (FakeLoc.enableDebugLog) {
+            if (FakeLoc.enableDebugLog || forceSensorLog) {
                 Logger.debug("Failed to find SystemSensorManager")
             }
             return
@@ -142,10 +175,15 @@ object SystemSensorManagerHook: BaseDivineService() {
                 stepDetectorStates.putIfAbsent(listener, StepSimulationState())
             }
             if (sensor.type == Sensor.TYPE_STEP_COUNTER || sensor.type == Sensor.TYPE_STEP_DETECTOR) {
-                Logger.info(
-                    "Register step sensor: listener=$listener, type=${sensor.type}, " +
-                            "enable=${FakeLoc.enable}, sensorHook=${FakeLoc.enableSensorHook}, speed=${FakeLoc.speed}"
-                )
+                val message = "Register step sensor: package=$packageName, process=$processName, " +
+                        "listener=$listener, type=${sensor.type}, enable=${FakeLoc.enable}, " +
+                        "sensorHook=${FakeLoc.enableSensorHook}, speed=${FakeLoc.speed}, " +
+                        "mode=${FakeLoc.stepCadenceMode}, stepLength=${FakeLoc.stepLengthMeters}"
+                if (forceSensorLog) {
+                    Logger.warn(message)
+                } else {
+                    Logger.info(message)
+                }
                 startSyntheticStepEvents(listener, sensor)
             }
 
@@ -194,12 +232,14 @@ object SystemSensorManagerHook: BaseDivineService() {
                 }
             })
         }
+        var registerHookCount = 0
         cSystemSensorManager.declaredMethods.filter {
             it.name == "registerListenerImpl" && it.parameterTypes.isNotEmpty()
                     && it.parameterTypes[0] == SensorEventListener::class.java
                     && it.parameterTypes[1] == Sensor::class.java
         }.forEach {
             it.onceHook(hookRegisterListenerImpl)
+            registerHookCount++
         }
 
         val hookUnregisterListenerImpl = beforeHook {
@@ -212,21 +252,41 @@ object SystemSensorManagerHook: BaseDivineService() {
             stepDetectorStates.remove(listener)
             syntheticStepThreads.remove(listener)?.interrupt()
         }
+        var unregisterHookCount = 0
         cSystemSensorManager.declaredMethods.filter {
             it.name == "unregisterListenerImpl" && it.parameterTypes.isNotEmpty()
                     && it.parameterTypes[0] == SensorEventListener::class.java
         }.forEach {
             it.onceHook(hookUnregisterListenerImpl)
+            unregisterHookCount++
+        }
+        if (forceSensorLog) {
+            Logger.warn(
+                "Hooked SystemSensorManager for $packageName/$processName: " +
+                        "register=$registerHookCount, unregister=$unregisterHookCount"
+            )
         }
 
         cSystemSensorManager.hookAllMethods("getSensorList", afterHook {
-            (result as? List<*>)?.forEach { (it as? Sensor)?.let(::rememberSensor) }
+            val sensors = result as? List<*>
+            sensors?.forEach { (it as? Sensor)?.let(::rememberSensor) }
+            if (forceSensorLog && args.firstOrNull() in arrayOf(Sensor.TYPE_STEP_COUNTER, Sensor.TYPE_STEP_DETECTOR)) {
+                Logger.warn("getSensorList(${args.firstOrNull()}) for $packageName/$processName -> ${sensors?.size ?: 0}")
+            }
             if (FakeLoc.enableDebugLog) {
                 Logger.debug("getSensorList: type: ${args[0]} -> $result")
             }
         })
         cSystemSensorManager.hookAllMethods("getFullSensorsList", afterHook {
-            (result as? List<*>)?.forEach { (it as? Sensor)?.let(::rememberSensor) }
+            val sensors = result as? List<*>
+            sensors?.forEach { (it as? Sensor)?.let(::rememberSensor) }
+            if (forceSensorLog) {
+                val stepSensors = sensors
+                    ?.mapNotNull { it as? Sensor }
+                    ?.filter { it.type == Sensor.TYPE_STEP_COUNTER || it.type == Sensor.TYPE_STEP_DETECTOR }
+                    .orEmpty()
+                Logger.warn("getFullSensorsList for $packageName/$processName stepSensors=${stepSensors.size}")
+            }
             if (FakeLoc.enableDebugLog) {
                 Logger.debug("getFullSensorsList-> $result")
             }

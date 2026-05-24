@@ -219,7 +219,7 @@ class RouteEditFragment : Fragment() {
         mLocationClient = AMapLocationClient(requireContext())
         val option = AMapLocationClientOption()
             .setGpsFirst(true)
-            .setMockEnable(false)
+            .setMockEnable(true)
             .setNeedAddress(true)
             .setSensorEnable(true)
             .setOffset(true)
@@ -229,7 +229,11 @@ class RouteEditFragment : Fragment() {
         mLocationClient.setLocationListener { loc ->
             if (loc == null) return@setLocationListener
             if (loc.errorCode != AMapLocation.LOCATION_SUCCESS) {
-                Log.e("RouteEditFragment", "AMap location error: ${loc.errorCode}, ${loc.errorInfo}")
+                Log.e(
+                    "RouteEditFragment",
+                    "AMap location error: code=${loc.errorCode}, info=${loc.errorInfo}, " +
+                            "detail=${loc.locationDetail}, type=${loc.locationType}, provider=${loc.provider}"
+                )
                 return@setLocationListener
             }
 
