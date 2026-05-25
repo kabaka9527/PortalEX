@@ -47,6 +47,14 @@ class RouteMockFragment : Fragment() {
     private companion object {
         const val ROUTE_MIN_WALKING_SPEED = 0.6
         const val ROUTE_MAX_WALKING_SPEED = 0.95
+
+        fun isValidRoutePoint(point: Pair<Double, Double>): Boolean {
+            val (lat, lon) = point
+            return lat.isFinite() && lon.isFinite() &&
+                    lat in -90.0..90.0 &&
+                    lon in -180.0..180.0 &&
+                    (lat != 0.0 || lon != 0.0)
+        }
     }
 
     private var _binding: FragmentRouteMockBinding? = null
@@ -326,6 +334,10 @@ class RouteMockFragment : Fragment() {
         }
         if (selectedRoute.route.isEmpty()) {
             showToast("路线没有坐标点")
+            return
+        }
+        if (selectedRoute.route.any { !isValidRoutePoint(it) }) {
+            showToast("路线坐标异常，请重新选择路线")
             return
         }
 

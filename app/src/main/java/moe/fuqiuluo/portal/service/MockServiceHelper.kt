@@ -36,6 +36,13 @@ object MockServiceHelper {
     private var loopThread :Thread ?= null
     @Volatile private var isRunning = false
 
+    private fun isValidCoordinate(lat: Double, lon: Double): Boolean {
+        return lat.isFinite() && lon.isFinite() &&
+                lat in -90.0..90.0 &&
+                lon in -180.0..180.0 &&
+                (lat != 0.0 || lon != 0.0)
+    }
+
     fun tryInitService(locationManager: LocationManager) {
         val rely = Bundle()
         Log.d("MockServiceHelper", "Try to init service")
@@ -169,7 +176,12 @@ object MockServiceHelper {
         val rely = Bundle()
         rely.putString("command_id", "get_location")
         if(locationManager.sendExtraCommand(PROVIDER_NAME, randomKey, rely)) {
-            return Pair(rely.getDouble("lat"), rely.getDouble("lon"))
+            val lat = rely.getDouble("lat")
+            val lon = rely.getDouble("lon")
+            if (isValidCoordinate(lat, lon)) {
+                return lat to lon
+            }
+            Log.w("MockServiceHelper", "Ignore invalid service location: $lat,$lon")
         }
         return null
     }
@@ -293,6 +305,10 @@ object MockServiceHelper {
 
     fun updateLocation(locationManager: LocationManager, lat: Double, lon: Double, mode: String): Boolean {
         if (!::randomKey.isInitialized) {
+            return false
+        }
+        if (mode == "=" && !isValidCoordinate(lat, lon)) {
+            Log.e("MockServiceHelper", "Refuse invalid location update: $lat,$lon")
             return false
         }
         val rely = Bundle()

@@ -69,7 +69,9 @@ object RemoteCommandHandler {
                 val lat = rely.getDouble("lat", FakeLoc.latitude)
                 val lon = rely.getDouble("lon", FakeLoc.longitude)
 
-                updateCoordinate(lat, lon)
+                if (!updateCoordinate(lat, lon)) {
+                    return false
+                }
                 FakeLoc.enable = true
                 if (isLoadedLibrary) {
                     Dobby.setStatus(true)
