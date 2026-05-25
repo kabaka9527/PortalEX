@@ -45,8 +45,8 @@ import androidx.navigation.findNavController
 
 class RouteMockFragment : Fragment() {
     private companion object {
-        const val ROUTE_MIN_WALKING_SPEED = 0.8
-        const val ROUTE_MAX_WALKING_SPEED = 1.35
+        const val ROUTE_MIN_WALKING_SPEED = 0.6
+        const val ROUTE_MAX_WALKING_SPEED = 0.95
     }
 
     private var _binding: FragmentRouteMockBinding? = null

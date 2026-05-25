@@ -6,6 +6,7 @@
         <item>com.android.location.fused</item>
         <item>com.xiaomi.location.fused</item>
         <item>com.mi.health</item>
+        <item>com.mi.health:device</item>
         <item>com.oplus.location</item>
     </string-array>
 </resources>

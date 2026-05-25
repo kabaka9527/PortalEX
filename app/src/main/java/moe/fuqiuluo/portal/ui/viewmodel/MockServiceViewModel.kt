@@ -27,9 +27,9 @@ import net.sf.geographiclib.Geodesic
 
 class MockServiceViewModel : ViewModel() {
     private companion object {
-        const val ROUTE_MIN_WALKING_SPEED = 0.8
-        const val ROUTE_MAX_WALKING_SPEED = 1.35
-        const val ROUTE_SPEED_AMPLITUDE = 0.05
+        const val ROUTE_MIN_WALKING_SPEED = 0.6
+        const val ROUTE_MAX_WALKING_SPEED = 0.95
+        const val ROUTE_SPEED_AMPLITUDE = 0.0
     }
 
     lateinit var rocker: Rocker
