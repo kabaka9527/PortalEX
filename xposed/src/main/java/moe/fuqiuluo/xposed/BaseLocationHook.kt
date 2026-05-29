@@ -11,6 +11,15 @@ import moe.microbios.nmea.NMEA
 import moe.microbios.nmea.NmeaValue
 import kotlin.random.Random
 
+internal fun calculateInjectedSpeed(speed: Double, speedAmplitude: Double): Float {
+    val speedAmp = if (speedAmplitude > 0.0) {
+        Random.nextDouble(-speedAmplitude, speedAmplitude)
+    } else {
+        0.0
+    }
+    return (speed + speedAmp).coerceAtLeast(0.1).toFloat()
+}
+
 abstract class BaseLocationHook: BaseDivineService() {
     fun injectLocation(originLocation: Location, realLocation: Boolean = true): Location {
         if (realLocation) {
@@ -44,8 +53,7 @@ abstract class BaseLocationHook: BaseDivineService() {
         location.latitude = jitterLat.first
         location.longitude = jitterLat.second
         location.altitude = FakeLoc.offset_altitude
-        val speedAmp = Random.nextDouble(-FakeLoc.speedAmplitude, FakeLoc.speedAmplitude)
-        location.speed = (FakeLoc.speed + speedAmp).coerceAtLeast(0.1).toFloat()
+        location.speed = calculateInjectedSpeed(FakeLoc.speed, FakeLoc.speedAmplitude)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && originLocation.hasSpeedAccuracy()) {
             location.speedAccuracyMetersPerSecond = FakeLoc.speedAmplitude.coerceAtLeast(0.01).toFloat()
         }
